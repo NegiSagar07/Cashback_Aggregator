@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env  # Docker reads the same .env file
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app:/code/app
+    env_file:
+      - .env  # App reads the same .env file
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
