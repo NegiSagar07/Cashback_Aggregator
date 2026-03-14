@@ -4,9 +4,9 @@ from datetime import datetime, date
 from fastapi import FastAPI, HTTPException, Depends
 from google import genai
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, text
 from .database import engine, Base, db_session
-from .models import Coupon
+from .models import Category, Coupon
 from .config import settings
 
 # --- LIFESPAN: create tables on startup ---
@@ -14,6 +14,25 @@ from .config import settings
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        # Lightweight migration for old DBs created before `category` existed.
+        category_exists = await conn.scalar(
+            text(
+                """
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM information_schema.columns
+                    WHERE table_name = 'coupons'
+                      AND column_name = 'category'
+                )
+                """
+            )
+        )
+        if not category_exists:
+            await conn.execute(
+                text(
+                    "ALTER TABLE coupons ADD COLUMN category VARCHAR NOT NULL DEFAULT 'Others'"
+                )
+            )
     yield
 
 # Initialize FastAPI
@@ -47,8 +66,17 @@ async def pick_best_deal(platform: str, amount: float, session: AsyncSession):
 @app.post("/add-coupon")
 async def add_coupon(user_text: str, session: AsyncSession = Depends(db_session)):
     """Uses Gemini to turn natural language into a structured coupon object."""
-    prompt = f"Extract coupon details from: '{user_text}'. Return ONLY JSON with keys: platform, value, min_spend, expiry (YYYY-MM-DD)."
-
+    prompt = f"""
+    Extract coupon details from this text: '{user_text}'. 
+    Return ONLY a JSON object with these keys: 
+    - platform (string)
+    - value (number)
+    - min_spend (number, use 0 if none)
+    - expiry (YYYY-MM-DD)
+    - category (string)
+    
+    CRITICAL RULE: For the 'category' key, you MUST choose exactly one of these exact words: [Food, Electronics, Fashion, Health, Travel, Others]. Categorize it logically based on the platform.
+    """
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -63,6 +91,7 @@ async def add_coupon(user_text: str, session: AsyncSession = Depends(db_session)
             value=float(data["value"]),
             min_spend=float(data["min_spend"]) if data.get("min_spend") is not None else None,
             expiry=datetime.strptime(data["expiry"], "%Y-%m-%d").date(),
+            category=Category(data["category"]),
         )
         session.add(coupon)
         await session.commit()
@@ -86,6 +115,7 @@ async def recommend(platform: str, amount: float, session: AsyncSession = Depend
             "value": best.value,
             "min_spend": best.min_spend,
             "expiry": str(best.expiry),
+            "category": best.category,
         },
     }
 
@@ -102,6 +132,7 @@ async def list_coupons(session: AsyncSession = Depends(db_session)):
                 "value": c.value,
                 "min_spend": c.min_spend,
                 "expiry": str(c.expiry),
+                "category": c.category,
             }
             for c in coupons
         ]

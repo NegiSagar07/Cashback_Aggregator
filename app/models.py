@@ -3,6 +3,16 @@
 from sqlalchemy import String, Float, Date, Integer
 from sqlalchemy.orm import mapped_column
 from .database import Base  
+import enum
+
+# Define the strict category list as an Enum
+class Category(str, enum.Enum):
+    FOOD = "Food"
+    ELECTRONICS = "Electronics"
+    FASHION = "Fashion"
+    HEALTH = "Health"
+    TRAVEL = "Travel"
+    OTHERS = "Others"
 
 class Coupon(Base):
     __tablename__ = "coupons"
@@ -12,6 +22,7 @@ class Coupon(Base):
     value = mapped_column(Float, nullable=False)
     min_spend = mapped_column(Float, nullable=True)  # Optional
     expiry = mapped_column(Date, nullable=False)
-
+    category = mapped_column(String, nullable=False)  # Required
+    
     def __repr__(self):
         return f"<Coupon(platform={self.platform}, value={self.value}, min_spend={self.min_spend}, expiry={self.expiry})>"
