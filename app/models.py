@@ -14,11 +14,17 @@ class Category(str, enum.Enum):
     TRAVEL = "Travel"
     OTHERS = "Others"
 
+
+class DiscountType(str, enum.Enum):
+    AMOUNT = "amount"
+    PERCENTAGE = "percentage"
+
 class Coupon(Base):
     __tablename__ = "coupons"
 
     id = mapped_column(Integer, primary_key=True, index=True)
     platform = mapped_column(String, nullable=False)
+    discount_type = mapped_column(String, nullable=False, default=DiscountType.AMOUNT.value)
     value = mapped_column(Float, nullable=False)
     min_spend = mapped_column(Float, nullable=True)  # Optional
     expiry = mapped_column(Date, nullable=False)

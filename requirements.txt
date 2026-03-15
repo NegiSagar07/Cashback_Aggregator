@@ -1,5 +1,6 @@
 annotated-doc==0.0.4
 annotated-types==0.7.0
+alembic
 asyncpg
 pydantic-settings
 sqlalchemy[asyncio]

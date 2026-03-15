@@ -1,12 +1,16 @@
 from pydantic import BaseModel, Field, ConfigDict
 from datetime import date
 from typing import Optional
-from app.models import Category  # Import the Enum you defined in models.py
+from app.models import Category, DiscountType  # Import enums defined in models.py
 
 class CouponBase(BaseModel):
     # Use Field constraints to ensure data quality
     platform: str = Field(..., min_length=1, description="The platform name (e.g., Swiggy)")
     value: float = Field(..., gt=0, description="The discount value")
+    discount_type: DiscountType = Field(
+        default=DiscountType.AMOUNT,
+        description="Type of discount: 'amount' or 'percentage'",
+    )
     
     # default=0.0 is better for math logic later
     min_spend: Optional[float] = Field(default=0.0, ge=0, description="Min spend required")

@@ -10,6 +10,8 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 # 4. Copy the rest of your app code
 COPY ./app /code/app
+COPY ./alembic /code/alembic
+COPY ./alembic.ini /code/alembic.ini
 
 # 5. Command to run the app
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
