@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     # JWT Security
     SECRET_KEY: str
     ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Automatically generate the Database URL
     @computed_field  # Requires Pydantic v2.10+

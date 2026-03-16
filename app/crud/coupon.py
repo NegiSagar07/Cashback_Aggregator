@@ -17,11 +17,17 @@ async def create_coupon(coupon: Coupon, session: AsyncSession) -> Coupon:
 		raise
 
 
-async def get_eligible_coupons(platform: str, amount: float, session: AsyncSession) -> list[Coupon]:
+async def get_eligible_coupons(
+	platform: str,
+	amount: float,
+	user_id: int,
+	session: AsyncSession,
+) -> list[Coupon]:
 	today = date.today()
 
 	result = await session.execute(
 		select(Coupon).where(
+			Coupon.user_id == user_id,
 			Coupon.platform.ilike(platform),
 			Coupon.expiry >= today,
 			or_(Coupon.min_spend.is_(None), Coupon.min_spend <= amount),
@@ -30,6 +36,6 @@ async def get_eligible_coupons(platform: str, amount: float, session: AsyncSessi
 	return result.scalars().all()
 
 
-async def get_all_coupons(session: AsyncSession):
-	result = await session.execute(select(Coupon))
+async def get_all_coupons(user_id: int, session: AsyncSession):
+	result = await session.execute(select(Coupon).where(Coupon.user_id == user_id))
 	return result.scalars().all()

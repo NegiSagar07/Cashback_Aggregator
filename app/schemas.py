@@ -3,6 +3,26 @@ from datetime import date
 from typing import Optional
 from app.models import Category, DiscountType  # Import enums defined in models.py
 
+
+class UserBase(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50, description="Unique username")
+
+
+class UserCreate(UserBase):
+    password: str = Field(..., min_length=1, description="Plain text password")
+
+
+class UserRead(UserBase):
+    id: int
+    is_active: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
 class CouponBase(BaseModel):
     # Use Field constraints to ensure data quality
     platform: str = Field(..., min_length=1, description="The platform name (e.g., Swiggy)")
@@ -28,6 +48,7 @@ class CouponCreate(CouponBase):
 class CouponRead(CouponBase):
     """Schema for returning a coupon (Response Body)"""
     id: int
+    user_id: int
 
     # In Pydantic V2, we use model_config instead of class Config
     model_config = ConfigDict(from_attributes=True)

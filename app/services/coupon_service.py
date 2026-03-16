@@ -14,6 +14,7 @@ def serialize_coupon(coupon: Coupon) -> dict:
 		"min_spend": coupon.min_spend,
 		"expiry": str(coupon.expiry),
 		"category": coupon.category,
+		"user_id": coupon.user_id,
 	}
 
 
@@ -23,14 +24,15 @@ def _estimate_savings(coupon: Coupon, amount: float) -> float:
 	return coupon.value
 
 
-async def create_coupon_from_text(user_text: str, session: AsyncSession) -> dict:
+async def create_coupon_from_text(user_text: str, user_id: int, session: AsyncSession) -> dict:
 	coupon = parse_coupon_from_text(user_text)
+	coupon.user_id = user_id
 	saved_coupon = await coupon_crud.create_coupon(coupon, session)
 	return serialize_coupon(saved_coupon)
 
 
-async def pick_best_deal(platform: str, amount: float, session: AsyncSession):
-	eligible = await coupon_crud.get_eligible_coupons(platform, amount, session)
+async def pick_best_deal(platform: str, amount: float, user_id: int, session: AsyncSession):
+	eligible = await coupon_crud.get_eligible_coupons(platform, amount, user_id, session)
 
 	if not eligible:
 		return None
@@ -38,5 +40,5 @@ async def pick_best_deal(platform: str, amount: float, session: AsyncSession):
 	return max(eligible, key=lambda c: _estimate_savings(c, amount))
 
 
-async def get_all_coupons(session: AsyncSession):
-	return await coupon_crud.get_all_coupons(session)
+async def get_all_coupons(user_id: int, session: AsyncSession):
+	return await coupon_crud.get_all_coupons(user_id, session)
