@@ -39,3 +39,17 @@ async def get_eligible_coupons(
 async def get_all_coupons(user_id: int, session: AsyncSession):
 	result = await session.execute(select(Coupon).where(Coupon.user_id == user_id))
 	return result.scalars().all()
+
+
+async def get_coupons_by_category(
+	category: str,
+	user_id: int,
+	session: AsyncSession,
+) -> list[Coupon]:
+	result = await session.execute(
+		select(Coupon).where(
+			Coupon.user_id == user_id,
+			Coupon.category.ilike(category),
+		)
+	)
+	return result.scalars().all()

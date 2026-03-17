@@ -12,6 +12,7 @@ def serialize_coupon(coupon: Coupon) -> dict:
 		"discount_type": coupon.discount_type,
 		"value": coupon.value,
 		"min_spend": coupon.min_spend,
+		"max_cap": coupon.max_cap,
 		"expiry": str(coupon.expiry),
 		"category": coupon.category,
 		"user_id": coupon.user_id,
@@ -20,7 +21,10 @@ def serialize_coupon(coupon: Coupon) -> dict:
 
 def _estimate_savings(coupon: Coupon, amount: float) -> float:
 	if coupon.discount_type == "percentage":
-		return (coupon.value / 100.0) * amount
+		estimated = (coupon.value / 100.0) * amount
+		if coupon.max_cap is not None:
+			return min(estimated, coupon.max_cap)
+		return estimated
 	return coupon.value
 
 
@@ -42,3 +46,8 @@ async def pick_best_deal(platform: str, amount: float, user_id: int, session: As
 
 async def get_all_coupons(user_id: int, session: AsyncSession):
 	return await coupon_crud.get_all_coupons(user_id, session)
+
+
+async def get_coupons_by_category(category: str, user_id: int, session: AsyncSession):
+	normalized_category = category.strip().capitalize()
+	return await coupon_crud.get_coupons_by_category(normalized_category, user_id, session)

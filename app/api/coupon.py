@@ -47,3 +47,14 @@ async def list_coupons(
 	"""Returns all coupons stored in the database."""
 	coupons = await coupon_service.get_all_coupons(current_user.id, session)
 	return {"coupons": [coupon_service.serialize_coupon(c) for c in coupons]}
+
+
+@router.get("/coupons/by-category")
+async def list_coupons_by_category(
+	category: str,
+	current_user: User = Depends(get_current_user),
+	session: AsyncSession = Depends(db_session),
+):
+	"""Returns all coupons for a given category (e.g., travel)."""
+	coupons = await coupon_service.get_coupons_by_category(category, current_user.id, session)
+	return {"coupons": [coupon_service.serialize_coupon(c) for c in coupons]}

@@ -34,6 +34,11 @@ class CouponBase(BaseModel):
     
     # default=0.0 is better for math logic later
     min_spend: Optional[float] = Field(default=0.0, ge=0, description="Min spend required")
+    max_cap: Optional[float] = Field(
+        default=None,
+        ge=0,
+        description="Maximum discount cap for percentage coupons; null for flat/no cap",
+    )
     
     expiry: date = Field(..., description="The expiry date of the coupon")
     

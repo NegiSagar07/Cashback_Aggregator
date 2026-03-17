@@ -17,8 +17,11 @@ def parse_coupon_from_text(user_text: str) -> Coupon:
 	- discount_type (string: amount or percentage)
 	- value (number)
 	- min_spend (number, use 0 if none)
+	- max_cap (number or null)
 	- expiry (YYYY-MM-DD)
 	- category (string)
+
+	"max_cap (number or null): Look for phrases like "up to ₹X" or "maximum discount of X". If there is a cap, put that number here. If it is a flat discount or has no limit, use null."
 
 	CRITICAL RULES:
 	1) For 'discount_type', choose exactly one: [amount, percentage].
@@ -42,6 +45,9 @@ def parse_coupon_from_text(user_text: str) -> Coupon:
 		value=float(data["value"]),
 		min_spend=(
 			float(data["min_spend"]) if data.get("min_spend") is not None else None
+		),
+		max_cap=(
+			float(data["max_cap"]) if data.get("max_cap") is not None else None
 		),
 		expiry=datetime.strptime(data["expiry"], "%Y-%m-%d").date(),
 		category=Category(data["category"]).value,
