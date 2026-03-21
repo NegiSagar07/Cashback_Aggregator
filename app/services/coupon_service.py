@@ -13,6 +13,7 @@ def serialize_coupon(coupon: Coupon) -> dict:
 		"value": coupon.value,
 		"min_spend": coupon.min_spend,
 		"max_cap": coupon.max_cap,
+		"is_active": coupon.is_active,
 		"expiry": str(coupon.expiry),
 		"category": coupon.category,
 		"user_id": coupon.user_id,

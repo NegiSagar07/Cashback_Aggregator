@@ -9,7 +9,7 @@ from .database import db_session
 from .models import User
 
 # Initialize FastAPI
-app = FastAPI(title="Smart Coupon Saver V1.1")
+app = FastAPI(title="Smart Coupon Saver V2.1")
 app.include_router(auth_router)
 app.include_router(coupon_router)
 

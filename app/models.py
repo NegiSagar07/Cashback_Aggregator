@@ -46,6 +46,7 @@ class Coupon(Base):
     value: Mapped[float] = mapped_column(Float, nullable=False)
     min_spend: Mapped[float | None] = mapped_column(Float, nullable=True)  # Optional
     max_cap: Mapped[float | None] = mapped_column(Float, nullable=True)  # Optional cap for percentage discounts
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     expiry: Mapped[date] = mapped_column(Date, nullable=False)
     category: Mapped[str] = mapped_column(String, nullable=False)  # Required
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
@@ -53,4 +54,4 @@ class Coupon(Base):
     owner: Mapped[User] = relationship(back_populates="coupons")
     
     def __repr__(self):
-        return f"<Coupon(platform={self.platform}, value={self.value}, min_spend={self.min_spend}, max_cap={self.max_cap}, expiry={self.expiry})>"
+        return f"<Coupon(platform={self.platform}, value={self.value}, min_spend={self.min_spend}, max_cap={self.max_cap}, is_active={self.is_active}, expiry={self.expiry})>"
