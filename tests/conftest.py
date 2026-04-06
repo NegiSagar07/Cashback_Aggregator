@@ -1,8 +1,10 @@
 import os
+import asyncio
 
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.auth import get_current_user
@@ -24,6 +26,7 @@ test_engine = create_async_engine(
     TEST_DATABASE_URL,
     echo=False,
     future=True,
+    poolclass=NullPool,
 )
 
 TestSessionLocal = async_sessionmaker(
@@ -32,35 +35,37 @@ TestSessionLocal = async_sessionmaker(
     expire_on_commit=False,
 )
 
-
-@pytest_asyncio.fixture
+@pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_database():
     try:
         async with test_engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
     except Exception as exc:
-        pytest.skip(
-            "PostgreSQL test database is not reachable. "
-            "Set TEST_DATABASE_URL to a valid test_db connection and ensure the DB is running. "
-            f"Original error: {exc}"
-        )
+        pytest.skip(f"Test database could not be initialized: {exc}")
 
     yield
 
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+    await test_engine.dispose()
 
 @pytest_asyncio.fixture
-async def async_db_session(setup_test_database) -> AsyncSession:  # type: ignore
+async def async_db_session() -> AsyncSession:  # type: ignore
     async with TestSessionLocal() as session:
         yield session
-        await session.rollback()
-
+        # Use truncate for fast resetting state instead of rollback or recreation
+        for table in reversed(Base.metadata.sorted_tables):
+            await session.execute(table.delete())
+        await session.commit()
 
 @pytest_asyncio.fixture
-async def test_user() -> User:
-    return User(id=1, username="test_user", hashed_password="not_used", is_active=True)
-
+async def test_user(async_db_session: AsyncSession) -> User:
+    user = User(username="test_user", hashed_password="not_used", is_active=True)
+    async_db_session.add(user)
+    await async_db_session.commit()
+    await async_db_session.refresh(user)
+    return user
 
 @pytest_asyncio.fixture
 async def client(async_db_session: AsyncSession, test_user: User):
