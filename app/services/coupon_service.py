@@ -1,8 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import UploadFile, HTTPException
 
 from ..crud import coupon as coupon_crud
 from ..models import Coupon
-from .ai_service import parse_coupon_from_text
+from .ai_service import parse_coupon_from_text, extract_coupon_from_image
+import json
 
 
 def serialize_coupon(coupon: Coupon) -> dict:
@@ -33,6 +35,34 @@ async def create_coupon_from_text(user_text: str, user_id: int, session: AsyncSe
 	coupon = parse_coupon_from_text(user_text)
 	coupon.user_id = user_id
 	saved_coupon = await coupon_crud.create_coupon(coupon, session)
+	return serialize_coupon(saved_coupon)
+
+
+async def process_uploaded_image(file: UploadFile, session: AsyncSession, user_id: int) -> dict:
+	try:
+		image_bytes = await file.read()
+	except Exception as e:
+		raise HTTPException(status_code=400, detail=f"Failed to read image bytes: {str(e)}")
+
+	try:
+		coupon_data = await extract_coupon_from_image(image_bytes)
+	except json.JSONDecodeError:
+		raise HTTPException(status_code=400, detail="AI returned malformed JSON.")
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"AI image parsing failed: {str(e)}")
+
+	# Convert CouponCreate to Coupon model
+	coupon_obj = Coupon(
+		platform=coupon_data.platform,
+		discount_type=coupon_data.discount_type.value if hasattr(coupon_data.discount_type, 'value') else coupon_data.discount_type,
+		value=coupon_data.value,
+		min_spend=coupon_data.min_spend,
+		max_cap=coupon_data.max_cap,
+		expiry=coupon_data.expiry,
+		category=coupon_data.category.value if hasattr(coupon_data.category, 'value') else coupon_data.category,
+		user_id=user_id
+	)
+	saved_coupon = await coupon_crud.create_coupon(coupon_obj, session)
 	return serialize_coupon(saved_coupon)
 
 

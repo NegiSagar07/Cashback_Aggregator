@@ -2,7 +2,8 @@ from unittest.mock import patch
 import pytest
 from httpx import AsyncClient
 import datetime
-from app.models import Coupon
+from app.models import Coupon, Category, DiscountType
+from app.schemas import CouponCreate
 
 @pytest.mark.asyncio
 async def test_get_coupons_empty(client: AsyncClient):
@@ -32,6 +33,31 @@ async def test_add_coupon(client: AsyncClient):
         data = response.json()
         assert data["status"] == "success"
         assert data["saved_coupon"]["platform"] == "Amazon"
+
+@pytest.mark.asyncio
+async def test_upload_coupon(client: AsyncClient):
+    fake_coupon_data = CouponCreate(
+        platform="Zomato",
+        discount_type=DiscountType.PERCENTAGE,
+        value=50.0,
+        min_spend=150.0,
+        max_cap=100.0,
+        category=Category.FOOD,
+        expiry=datetime.date(2030, 5, 5)
+    )
+
+    with patch("app.services.coupon_service.extract_coupon_from_image", return_value=fake_coupon_data):
+        # We simulate uploading by sending a multipart/form-data request 
+        # with a dummy bytes payload and image content-type
+        file_payload = {"file": ("dummy.jpg", b"fake_image_bytes", "image/jpeg")}
+        response = await client.post("/upload-coupon", files=file_payload)
+        
+        assert response.status_code == 200, response.json()
+        data = response.json()
+        assert data["status"] == "success"
+        # Validate fields returned by coupon_service.serialize_coupon
+        assert data["saved_coupon"]["platform"] == "Zomato"
+        assert data["saved_coupon"]["category"] == Category.FOOD.value
 
 @pytest.mark.asyncio
 async def test_get_coupons(client: AsyncClient):
