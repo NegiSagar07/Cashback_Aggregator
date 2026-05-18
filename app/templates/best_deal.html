@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0">Find the Best Deal</h4>
+            </div>
+            <div class="card-body p-0">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs nav-justified" id="findDealTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if not search_type or search_type == 'platform' %}active{% endif %} py-3 fw-bold" id="platform-tab" data-bs-toggle="tab" data-bs-target="#platform-tab-pane" type="button" role="tab" aria-controls="platform-tab-pane" aria-selected="{% if not search_type or search_type == 'platform' %}true{% else %}false{% endif %}">
+                            Search by Platform
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link {% if search_type == 'category' %}active{% endif %} py-3 fw-bold" id="category-tab" data-bs-toggle="tab" data-bs-target="#category-tab-pane" type="button" role="tab" aria-controls="category-tab-pane" aria-selected="{% if search_type == 'category' %}true{% else %}false{% endif %}">
+                            Search by Category
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab content -->
+                <div class="tab-content p-4" id="findDealTabsContent">
+                    <p class="text-muted mb-4">Tell us what you're buying and how much you plan to spend. We'll find the best active coupon to maximize your savings!</p>
+                
+                    <!-- Tab 1: Platform -->
+                    <div class="tab-pane fade {% if not search_type or search_type == 'platform' %}show active{% endif %}" id="platform-tab-pane" role="tabpanel" aria-labelledby="platform-tab" tabindex="0">
+                        <form action="/best-deal" method="POST">
+                            <input type="hidden" name="search_type" value="platform">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="search_value_platform" class="form-label fw-bold">Platform / Store</label>
+                                    <input type="text" class="form-control" id="search_value_platform" name="search_value" placeholder="e.g. Swiggy, Amazon" value="{{ platform_searched if platform_searched else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="amount_platform" class="form-label fw-bold">Estimated Spend Amount ($)</label>
+                                    <input type="number" step="0.01" class="form-control" id="amount_platform" name="amount" placeholder="e.g. 500" value="{{ amount_searched if amount_searched else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn btn-primary">Find Best Coupon</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Tab 2: Category -->
+                    <div class="tab-pane fade {% if search_type == 'category' %}show active{% endif %}" id="category-tab-pane" role="tabpanel" aria-labelledby="category-tab" tabindex="0">
+                        <form action="/best-deal" method="POST">
+                            <input type="hidden" name="search_type" value="category">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="search_value_category" class="form-label fw-bold">Category</label>
+                                    <select class="form-select" id="search_value_category" name="search_value" required>
+                                        <option value="" disabled {% if not category_searched %}selected{% endif %}>Select a category...</option>
+                                        <option value="Food" {% if category_searched == 'Food' %}selected{% endif %}>Food</option>
+                                        <option value="Electronics" {% if category_searched == 'Electronics' %}selected{% endif %}>Electronics</option>
+                                        <option value="Fashion" {% if category_searched == 'Fashion' %}selected{% endif %}>Fashion</option>
+                                        <option value="Health" {% if category_searched == 'Health' %}selected{% endif %}>Health</option>
+                                        <option value="Travel" {% if category_searched == 'Travel' %}selected{% endif %}>Travel</option>
+                                        <option value="Others" {% if category_searched == 'Others' %}selected{% endif %}>Others</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="amount_category" class="form-label fw-bold">Estimated Spend Amount ($)</label>
+                                    <input type="number" step="0.01" class="form-control" id="amount_category" name="amount" placeholder="e.g. 500" value="{{ amount_searched if amount_searched else '' }}" required>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-end">
+                                <button type="submit" class="btn btn-primary">Find Best Coupon</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if searched %}
+            {% if best_coupon %}
+            <div class="alert alert-success shadow-sm" role="alert">
+                <h4 class="alert-heading mb-3"><i class="bi bi-check-circle-fill"></i> Best Match Found!</h4>
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-success">{{ best_coupon.category }}</span>
+                        <small>Expires: {{ best_coupon.expiry }}</small>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ best_coupon.platform }}</h5>
+                        <h2 class="text-success my-3">
+                            {% if best_coupon.discount_type == 'amount' %}
+                                ${{ "%.2f"|format(best_coupon.value) }}
+                            {% else %}
+                                {{ best_coupon.value }}%
+                            {% endif %}
+                            <span class="fs-6 text-muted fw-normal">OFF</span>
+                        </h2>
+                        {% if estimated_savings %}
+                        <h5 class="text-secondary mb-3">Estimated Savings: <strong class="text-success">${{ "%.2f"|format(estimated_savings) }}</strong></h5>
+                        {% endif %}
+                        <ul class="list-unstyled mb-0 text-muted small row">
+                            <li class="col-6">Min Spend: {% if best_coupon.min_spend %}${{ "%.2f"|format(best_coupon.min_spend) }}{% else %}None{% endif %}</li>
+                            <li class="col-6">Max Cap: {% if best_coupon.max_cap %}${{ "%.2f"|format(best_coupon.max_cap) }}{% else %}None{% endif %}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-warning shadow-sm" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> No Deals Found</h4>
+                <p class="mb-0">You don't have any active coupons for <strong>{{ search_value }}</strong> that meet the minimum spend requirement of <strong>${{ amount_searched }}</strong>.</p>
+                <hr>
+                <p class="mb-0 small"><a href="/add-coupon" class="alert-link">Add a new coupon</a> to expand your savings!</p>
+            </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

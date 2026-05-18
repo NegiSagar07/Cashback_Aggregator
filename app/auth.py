@@ -71,3 +71,30 @@ async def get_current_user(
 	if not user.is_active:
 		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Inactive user")
 	return user
+
+from fastapi import Request
+
+async def get_current_user_from_cookie(
+    request: Request,
+    session: AsyncSession = Depends(db_session),
+) -> User | None:
+    token = request.cookies.get("access_token")
+    if not token:
+        return None
+    
+    if token.startswith("Bearer "):
+        token = token[7:]
+        
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        subject = payload.get("sub")
+        if subject is None:
+            return None
+        user_id = int(subject)
+    except (JWTError, ValueError):
+        return None
+
+    user = await get_user_by_id(user_id, session)
+    if user is None or not user.is_active:
+        return None
+    return user

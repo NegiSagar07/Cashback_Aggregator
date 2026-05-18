@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white py-3">
+                <h4 class="mb-0">Add Coupon</h4>
+            </div>
+            <div class="card-body p-0">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs nav-justified" id="addCouponTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-3 fw-bold" id="text-tab" data-bs-toggle="tab" data-bs-target="#text-tab-pane" type="button" role="tab" aria-controls="text-tab-pane" aria-selected="true">
+                            Add via Text
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-3 fw-bold" id="image-tab" data-bs-toggle="tab" data-bs-target="#image-tab-pane" type="button" role="tab" aria-controls="image-tab-pane" aria-selected="false">
+                            Add via Screenshot
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab content -->
+                <div class="tab-content p-4" id="addCouponTabsContent">
+                    <!-- Option A: Text -->
+                    <div class="tab-pane fade show active" id="text-tab-pane" role="tabpanel" aria-labelledby="text-tab" tabindex="0">
+                        <p class="text-muted mb-4">Paste the text of your coupon, and our AI will automatically extract the details!</p>
+                        
+                        <form action="/submit-coupon" method="POST">
+                            <div class="mb-4">
+                                <label for="user_text" class="form-label fw-bold">Coupon Text</label>
+                                <textarea class="form-control" id="user_text" name="user_text" rows="5" placeholder="e.g. Get 20% off on Swiggy for minimum spend of $50 valid till next Sunday" required></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="/dashboard" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                                <button type="submit" class="btn btn-success">Extract & Save</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Option B: Image -->
+                    <div class="tab-pane fade" id="image-tab-pane" role="tabpanel" aria-labelledby="image-tab" tabindex="0">
+                        <p class="text-muted mb-4">Upload a screenshot of your coupon. Our AI vision will scan it and extract the details for you!</p>
+                        
+                        <form action="/add-coupon/image" method="POST" enctype="multipart/form-data">
+                            <div class="mb-4">
+                                <label for="file" class="form-label fw-bold">Coupon Image</label>
+                                <input type="file" class="form-control form-control-lg" id="file" name="file" accept="image/*" required>
+                                <div class="form-text mt-2">Supported formats: JPG, PNG, WEBP. Focus clearly on the coupon text.</div>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="/dashboard" class="btn btn-outline-secondary me-md-2">Cancel</a>
+                                <button type="submit" class="btn btn-success">Scan & Save</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

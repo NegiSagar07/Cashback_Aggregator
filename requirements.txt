@@ -41,3 +41,4 @@ uvicorn==0.41.0
 websockets==16.0
 pytest
 pytest-asyncio
+jinja2

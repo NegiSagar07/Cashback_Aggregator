@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 mt-3">
+    <h2>Your Dashboard</h2>
+    <a href="/add-coupon" class="btn btn-primary">Add New Coupon</a>
+</div>
+
+<div class="mb-4">
+    <div class="btn-group" role="group" aria-label="Category filter">
+        <a href="/dashboard" class="btn btn-outline-secondary {% if not current_category %}active{% endif %}">All</a>
+        <a href="/dashboard?category=Food" class="btn btn-outline-secondary {% if current_category == 'Food' %}active{% endif %}">Food</a>
+        <a href="/dashboard?category=Electronics" class="btn btn-outline-secondary {% if current_category == 'Electronics' %}active{% endif %}">Electronics</a>
+        <a href="/dashboard?category=Fashion" class="btn btn-outline-secondary {% if current_category == 'Fashion' %}active{% endif %}">Fashion</a>
+        <a href="/dashboard?category=Health" class="btn btn-outline-secondary {% if current_category == 'Health' %}active{% endif %}">Health</a>
+        <a href="/dashboard?category=Travel" class="btn btn-outline-secondary {% if current_category == 'Travel' %}active{% endif %}">Travel</a>
+        <a href="/dashboard?category=Others" class="btn btn-outline-secondary {% if current_category == 'Others' %}active{% endif %}">Others</a>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for coupon in coupons %}
+    <div class="col">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 pt-3">
+                <span class="badge bg-info text-dark">{{ coupon.category }}</span>
+                <small class="text-muted">Expires: {{ coupon.expiry }}</small>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ coupon.platform }}</h5>
+                <h2 class="text-success mb-3">
+                    {% if coupon.discount_type == 'amount' %}
+                        ${{ "%.2f"|format(coupon.value) }}
+                    {% else %}
+                        {{ coupon.value }}%
+                    {% endif %}
+                    <span class="fs-6 text-muted fw-normal">OFF</span>
+                </h2>
+                <ul class="list-unstyled mb-0 text-muted small">
+                    <li>Min Spend: {% if coupon.min_spend %}${{ "%.2f"|format(coupon.min_spend) }}{% else %}None{% endif %}</li>
+                    <li>Max Cap: {% if coupon.max_cap %}${{ "%.2f"|format(coupon.max_cap) }}{% else %}None{% endif %}</li>
+                </ul>
+            </div>
+            <div class="card-footer bg-light border-0">
+                <span class="badge {% if coupon.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                    {% if coupon.is_active %}Active{% else %}Inactive{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 mt-5">
+        <div class="text-center p-5 bg-light rounded text-muted">
+            <h4 class="mb-3">No Coupons Found</h4>
+            <p>You don't have any active coupons in this category.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

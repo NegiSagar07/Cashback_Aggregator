@@ -74,6 +74,13 @@ async def pick_best_deal(platform: str, amount: float, user_id: int, session: As
 
 	return max(eligible, key=lambda c: _estimate_savings(c, amount))
 
+async def pick_best_deal_by_category(category: str, amount: float, user_id: int, session: AsyncSession):
+	eligible = await coupon_crud.get_eligible_coupons_by_category(category, amount, user_id, session)
+
+	if not eligible:
+		return None
+
+	return max(eligible, key=lambda c: _estimate_savings(c, amount))
 
 async def get_all_coupons(user_id: int, session: AsyncSession):
 	return await coupon_crud.get_all_coupons(user_id, session)

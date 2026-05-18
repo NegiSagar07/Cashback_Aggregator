@@ -1,0 +1,69 @@
+.
+├── alembic
+│   ├── env.py
+│   ├── README
+│   ├── script.py.mako
+│   └── versions
+│       ├── 20260315_0001_create_coupons_table.py
+│       ├── 20260315_0002_add_missing_coupon_columns.py
+│       ├── 20260316_0003_add_users_and_coupon_ownership.py
+│       ├── 20260317_0004_add_coupon_max_cap.py
+│       └── 20260317_0005_add_coupon_is_active.py
+├── alembic.ini
+├── all_code_combined.txt
+├── app
+│   ├── api
+│   │   ├── auth.py
+│   │   ├── coupon.py
+│   │   ├── __init__.py
+│   │   └── web.py
+│   ├── auth.py
+│   ├── config.py
+│   ├── core
+│   │   ├── celery_app.py
+│   │   ├── __init__.py
+│   │   └── tasks.py
+│   ├── crud
+│   │   ├── coupon.py
+│   │   ├── __init__.py
+│   │   └── user.py
+│   ├── database.py
+│   ├── __init__.py
+│   ├── main.py
+│   ├── models.py
+│   ├── schemas.py
+│   ├── services
+│   │   ├── ai_service.py
+│   │   └── coupon_service.py
+│   └── templates
+│       ├── add_coupon.html
+│       ├── base.html
+│       ├── best_deal.html
+│       ├── dashboard.html
+│       ├── login.html
+│       ├── profile.html
+│       └── register.html
+├── docker
+│   └── postgres
+│       └── initdb
+│           └── 01-create-test-db.sh
+├── docker-compose.yml
+├── Dockerfile
+├── patch_category.py
+├── patch_tests.py
+├── project_structure.txt
+├── pytest.ini
+├── pytest.ini (create)
+├── requirements.txt
+├── requirements.txt (edit)
+├── seed_coupons2.py
+├── seed_coupons.py
+└── tests
+    ├── conftest.py
+    ├── test_auth.py
+    ├── test_coupons.py
+    ├── test_health.py
+    ├── test_hello_world.py
+    └── test_hello_world.py (create)
+
+12 directories, 54 files

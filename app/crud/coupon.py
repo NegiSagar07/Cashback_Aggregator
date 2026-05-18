@@ -67,3 +67,23 @@ async def deactivate_expired_coupons(session: AsyncSession) -> int:
 	result = await session.execute(stmt)
 	await session.commit()
 	return result.rowcount or 0
+
+
+async def get_eligible_coupons_by_category(
+	category: str,
+	amount: float,
+	user_id: int,
+	session: AsyncSession,
+) -> list[Coupon]:
+	today = date.today()
+
+	result = await session.execute(
+		select(Coupon).where(
+			Coupon.user_id == user_id,
+			Coupon.category.ilike(category),
+			Coupon.is_active.is_(True),
+			Coupon.expiry >= today,
+			or_(Coupon.min_spend.is_(None), Coupon.min_spend <= amount),
+		)
+	)
+	return result.scalars().all()

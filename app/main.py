@@ -3,8 +3,9 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .api.auth import router as auth_router
-from .auth import get_current_user
 from .api.coupon import router as coupon_router
+from .api.web import router as web_router
+from .auth import get_current_user
 from .database import db_session
 from .models import User
 
@@ -12,6 +13,7 @@ from .models import User
 app = FastAPI(title="Smart Coupon Saver V2.1")
 app.include_router(auth_router)
 app.include_router(coupon_router)
+app.include_router(web_router)
 
 
 @app.get("/health/db", tags=["Health"])
